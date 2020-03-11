@@ -9,7 +9,8 @@ import time
 # Windows
 WIN_HEIGHT = 800
 WIN_WIDTH = 1000
-g = 7
+g = 500
+
 
 
 # Framerate
@@ -58,7 +59,8 @@ class Ball(pygame.sprite.Sprite):
         self.vy = v[1]
         self.mask = pygame.mask.from_surface(
             self.image)  # creates a mask, used for collision detection (see manual about pygame.sprite.collide_mask())
-        self.radius = radius
+        self.resistance = 0
+        self.y0 = self.rect.y
 
     def update(self):
         """
@@ -68,27 +70,35 @@ class Ball(pygame.sprite.Sprite):
         # TODO:
         # 1. General motion of particles
 
+        current_time = time.time()-o1.time_since
+        self.rect.y = self.y0 + self.vy * current_time + 0.5 * g * current_time**2
+        vy = self.vy + g * current_time
 
 
-        self.vy = self.vy + g
-
-
-        self.rect.y += self.vy
+        #self.rect.y += self.vy
         self.rect.x += self.vx
 
         # 2. Bouncing off walls
 
-        if(self.rect.y >= WIN_HEIGHT - self.radius or self.rect.y <= 0):
-            print("Jetzt")
+        if(self.rect.bottom >= WIN_HEIGHT or self.rect.y <= 0):
             if(self.rect.y < WIN_HEIGHT/2):
                 self.vy = abs(self.vy)
                 self.rect.y += self.vy
 
-            else:
-                self.vy = -abs(self.vy)
-                self.rect.y += self.vy
 
-        if(self.rect.x >= WIN_WIDTH - self.radius or self.rect.x <= 0):
+            else:
+                o1.time_since = time.time()
+                self.y0 = self.rect.y
+                vy = -abs(vy)
+                self.vy = vy
+                print("Ali")
+
+                #self.vy = -abs(self.vy)
+                #self.vy -= self.resistance
+                #self.rect.y += self.vy
+
+
+        if(self.rect.bottom >= WIN_WIDTH or self.rect.x <= 0):
             if (self.rect.x < WIN_WIDTH / 2):
                 self.vx = abs(self.vx)
                 self.rect.x += self.vx
@@ -96,6 +106,7 @@ class Ball(pygame.sprite.Sprite):
                 self.vx = -abs(self.vx)
                 self.rect.x += self.vx
 
+        print(current_time)
 
 
 
@@ -151,11 +162,12 @@ class Game:
         pygame.display.set_caption("Bouncing Balls")  # Game title
         self.bool = False
         self.seconds = time.time()
+        self.time_since = time.time()
 
     def realsleep(self, pause):
         if time.time() - self.seconds > pause:
             self.seconds = time.time()
-            k = True
+            k = Truef
         else:
             k = False
         return k
@@ -224,5 +236,6 @@ class Game:
 
 
 if __name__ == "__main__":
-    Game().play()
+    o1 = Game()
+    o1.play()
 
