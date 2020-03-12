@@ -49,7 +49,7 @@ class Ball(pygame.sprite.Sprite):
 
         # CREATE BALL IMAGE (if does not exist yet)
         #file_path = f"data/ball_r={radius}_col={str(color).replace(' ', '').replace(',', '_')}.png"
-        file_path_pac = f"data/PacMan.png"
+        file_path_pac = f"dataP/Pac-Man-1.png.png"
         #if not os.path.isfile(file_path):
             #draw_bmp_circle(radius, color, file_path)  # draw image and save on disk if doesnt exist yet
 
@@ -73,8 +73,40 @@ class Ball(pygame.sprite.Sprite):
         self.key_s = False
         self.score = 0
         self.g = g
+        self.looking_direction = None
+        self.booll = False
+        self.boolr = True
+
+        self.images = [
+            pygame.image.load("dataP/Pac-Man-1.png.png"),
+            pygame.image.load("dataP/Pac-Man-2.png.png"),
+            pygame.image.load("dataP/Pac-Man-3.png.png"),
+            pygame.image.load("dataP/Pac-Man-4.png.png"),
+            pygame.image.load("dataP/Pac-Man-5.png.png"),
+            pygame.image.load("dataP/Pac-Man-6.png.png"),
+            pygame.image.load("dataP/Pac-Man-7.png.png"),
+            pygame.image.load("dataP/Pac-Man-8.png.png"),
+            pygame.image.load("dataP/Pac-Man-9.png.png"),
+            pygame.image.load("dataP/Pac-Man-10.png.png"),
+
+        ]
+
+        self.index = 0
+        self.image = self.images[self.index]
+        self.pre_index = 0
+
+
 
     def update(self):
+        if abs(self.vx) > 0.5:
+
+            self.pre_index += 1
+            if self.pre_index % 3 == 0:
+                self.index += 1
+            if self.index >= len(self.images):
+                self.index = 0
+                self.pre_index = 0
+            self.image = self.images[self.index]
         """
         determines motion of particles:
 
@@ -123,16 +155,33 @@ class Ball(pygame.sprite.Sprite):
 
         if self.key_d == True:
             self.vx += 6
+            self.looking_direction = "r"
+            self.boolr = True
             self.key_d = False
-        if self.key_a == True:
+        elif self.key_a == True:
             self.vx -= 6
+            self.looking_direction = "l"
+            self.booll = True
             self.key_a = False
         if self.key_w == True:
-            self.vy_space_holder -= 42
+            self.vy_space_holder -= 51
             self.key_w = False
         if self.key_s == True:
-            self.vy_space_holder += 42
+            self.vy_space_holder += 51
             self.key_s = False
+
+        #Flip
+        if self.looking_direction == "r" and self.booll == True:
+            for image in range(len(self.images)):
+                self.images[image] = pygame.transform.flip(self.images[image], True, False)
+            self.image = pygame.transform.flip(self.image, True, False)
+            self.booll = False
+
+        if self.looking_direction == "l" and self.boolr == True:
+            for i in range(len(self.images)):
+                self.images[i] = pygame.transform.flip(self.images[i], True, False)
+            self.image = pygame.transform.flip(self.image, True, False)
+            self.boolr = False
 
 
 
@@ -144,34 +193,101 @@ class Ball(pygame.sprite.Sprite):
         """
         # TODO
         # 1. two balls (self and ball) collide -> deal with collision
-        v1 = np.array([ball_hit_list[0].vx, ball_hit_list[0].vy]).reshape(1,-1)
-        v2 = np.array([ball_hit_list[1].vx, ball_hit_list[1].vy]).reshape(1,-1)
-        x1 = ball_hit_list[0].rect.center
+        v1 = np.array([self.vx, self.vy]).reshape(1,-1)
+        v2 = np.array([ball_hit_list[0].vx, ball_hit_list[0].vy]).reshape(1,-1)
+        x1 = self.rect.center
         x1 = np.asarray(x1)
-        x2 = ball_hit_list[1].rect.center
+        x2 = ball_hit_list[0].rect.center
         x2 = np.asarray(x2)
         x1 = x1.reshape(1,-1)
         x2 = x2.reshape(1,-1)
-        m1 = ball_hit_list[0].mass
-        m2 = ball_hit_list[1].mass
+        m1 = self.mass
+        m2 = ball_hit_list[0].mass
 
         v1new = v1 - 2 * m2 / (m1+m2) * np.vdot((v1 - v2), (x1 - x2)) / np.vdot((x1 - x2), (x1 - x2)) * (x1 - x2)
         v2new = v2 - 2 * m1 / (m1 + m2) * np.vdot((v2 - v1), (x2 - x1)) / np.vdot((x2 - x1), (x2 - x1)) * (x2 - x1)
         v1new = v1new.reshape(-1, 1)
         v2new = v2new.reshape(-1, 1)
-        ball_hit_list[0].vx = v1new[0]
-        ball_hit_list[0].vy = v1new[1]
-        ball_hit_list[1].vx = v2new[0]
-        ball_hit_list[1].vy = v2new[1]
+        self.vx = v1new[0]
+        self.vy = v1new[1]
+        ball_hit_list[0].vx = v2new[0]
+        ball_hit_list[0].vy = v2new[1]
 
-
-
+        if self.key_a or self.key_d or self.key_w or self.key_s == True:
+            print("Sjnjsvn")
 
         # Theory of collision btw two balls: https://en.wikipedia.org/wiki/Elastic_collision#Two-dimensional (last formula)
 
         # 2. try to avoid 'ball dances'
 
 class Coin(pygame.sprite.Sprite):
+    def __init__(self, xy_center, v, radius, mass, color):
+        super().__init__()  # call __init__ of parent class (i.e. of pygame.sprite.Sprite)
+
+        # CREATE BALL IMAGE (if does not exist yet)
+        file_path = f"dataC/coin-1.png.png"
+        #file_path = f"data/ball_r={radius}_col={str(color).replace(' ', '').replace(',', '_')}.png"
+        #if not os.path.isfile(file_path):
+            #draw_bmp_circle(radius, color, file_path)  # draw image and save on disk if doesnt exist yet
+
+        # ASSIGN CLASS ATTRIBUTES
+        self.image = pygame.image.load(file_path)  # load image
+        self.rect = self.image.get_rect()  # create rectangle containing ball image
+        self.rect.center = (int(xy_center[0]), int(xy_center[1]))  # set center coords of ball
+        self.mass = mass  # is relevant for realistic collisions
+        self.color = color
+        self.vx = v[0]  # velocity
+        self.vy = v[1]
+        self.mask = pygame.mask.from_surface(
+            self.image)  # creates a mask, used for collision detection (see manual about pygame.sprite.collide_mask())
+        self.radius = radius
+        self.resistence = 0.05
+        self.vy_space_holder = self.vy
+        self.touching_ground = False
+
+        self.images = [
+            pygame.image.load("dataC/coin-1.png.png"),
+            pygame.image.load("dataC/coin-2.png.png"),
+            pygame.image.load("dataC/coin-3.png.png"),
+            pygame.image.load("dataC/coin-4.png.png"),
+            pygame.image.load("dataC/coin-5.png.png"),
+            pygame.image.load("dataC/coin-6.png.png"),
+        ]
+
+        self.index = 0
+        self.image = self.images[self.index]
+        self.pre_index = 0
+
+    def update(self):
+
+        self.pre_index += 1
+        if self.pre_index % 3 == 0:
+            self.index += 1
+        if self.index >= len(self.images):
+            self.index = 0
+            self.pre_index = 0
+        self.image = self.images[self.index]
+
+    def collide(self, Coins):
+        Coins.remove(self)
+
+    def respawn(self, Coins):
+        Coins.remove(Coins)
+        random_list_hight = [random.uniform(0.9, 0.85), random.uniform(0.8, 0.75),
+                             random.uniform(0.7, 0.65), random.uniform(0.6, 0.55)]
+        random.shuffle(random_list_hight)
+        coins_list = [
+            Coin([random.uniform(0.1, 0.2) * WIN_WIDTH, random_list_hight[0] * WIN_HEIGHT], [0, 0], 18, 1, GOLD),
+            Coin([random.uniform(0.3, 0.4) * WIN_WIDTH, random_list_hight[1] * WIN_HEIGHT], [0, 0], 18, 1, GOLD),
+            Coin([random.uniform(0.5, 0.6) * WIN_WIDTH, random_list_hight[2] * WIN_HEIGHT], [0, 0], 18, 1, GOLD),
+            Coin([random.uniform(0.7, 0.8) * WIN_WIDTH, random_list_hight[3] * WIN_HEIGHT], [0, 0], 18, 1, GOLD),
+        ]
+        random_list_hight = [random.uniform(0.8, 0.75), random.uniform(0.7, 0.65),
+                             random.uniform(0.6, 0.55), random.uniform(0.5, 0.45)]
+
+        Coins.add(coins_list)
+
+class Rects(pygame.sprite.Sprite):
     def __init__(self, xy_center, v, radius, mass, color):
         super().__init__()  # call __init__ of parent class (i.e. of pygame.sprite.Sprite)
 
@@ -272,6 +388,7 @@ class Coin(pygame.sprite.Sprite):
 
         # 2. try to avoid 'ball dances'
 
+
 class Game:
     """
     Main GAME class
@@ -302,14 +419,14 @@ class Game:
 
         # CREATE OBJECTS AND ASSIGN TO GROUPS
         balls_list = [
-            Ball([0.1 * WIN_WIDTH, 0.9 * WIN_HEIGHT], [0, 0], 64, 1, BLUE),
-            Ball([0.9 * WIN_WIDTH, 0.25 * WIN_HEIGHT], [0, 0], 64, 1, BLACK)
+            Ball([0.1 * WIN_WIDTH, 0.75 * WIN_HEIGHT], [0, 0], 64, 1, BLUE),
+            Ball([0.9 * WIN_WIDTH, 0.75 * WIN_HEIGHT], [0, 0], 64, 1, BLACK)
             #Ball([0.50 * WIN_WIDTH, 0.75 * WIN_HEIGHT], [7, -7], 100, 1, WHITE)
             #Ball([0.50 * WIN_WIDTH, 0.25 * WIN_HEIGHT], [-4, 7], 100, 1, RED)
         ]
 
-        random_list_hight = [random.uniform(0.8, 0.75), random.uniform(0.7, 0.65),
-                            random.uniform(0.6, 0.55), random.uniform(0.5, 0.45)]
+        random_list_hight = [random.uniform(0.9, 0.85), random.uniform(0.8, 0.75),
+                            random.uniform(0.7, 0.65), random.uniform(0.6, 0.55)]
         random.shuffle(random_list_hight)
         coins_list = [
             Coin([random.uniform(0.1, 0.2) * WIN_WIDTH, random_list_hight[0] * WIN_HEIGHT], [0, 0], 18, 1, GOLD),
@@ -324,6 +441,7 @@ class Game:
         Balls.add(balls_list)
 
         # GAME PERMANENT LOOP
+        respawn = False
         while True:
             pygame.time.delay(TIME_DELAY)
 
@@ -363,29 +481,32 @@ class Game:
 
             # COLLISION DETECTION
             # see manual for all types of collisions: https://www.pygame.org/docs/ref/sprite.html#pygame.sprite.spritecollide
-            # TODO: check for collisions between any two balls. If there is any, call the collision() method of the Ball class.
+            # Between Balls
             for k in Balls:
                 ball_hit_list = pygame.sprite.spritecollide(k, Balls, False, pygame.sprite.collide_circle_ratio(0.55))
                 if len(ball_hit_list) > 1:
-                    if self.realsleep(TIME_DELAY / 50000) == False:
-                        if self.realsleep(TIME_DELAY/50000) == True:
-                            Ball.collide(self, ball_hit_list)
-                    else:
-                        Ball.collide(self, ball_hit_list)
+                    ball_hit_list.remove(ball_hit_list[0])
 
+                    if self.realsleep(TIME_DELAY / 500) == False:
+                        if self.realsleep(TIME_DELAY/500) == True:
+                            k.collide(ball_hit_list)
+                    else:
+                        k.collide(ball_hit_list)
+            #Between Coins and Balls
             for k in Coins:
                 coin_hit_list = pygame.sprite.spritecollide(k, Balls, False, pygame.sprite.collide_circle_ratio(0.55))
                 if len(coin_hit_list) >= 1:
-                    coin_hit_list.append(k)
-                    if self.realsleep(TIME_DELAY / 500) == False:
-                        if self.realsleep(TIME_DELAY/500) == True:
-                            balls_list[0].score += 1
-                            balls_list[1].score += 1
-                            Coin.collide(self, coin_hit_list)
-                    else:
-                        Coin.collide(self, coin_hit_list)
-                        balls_list[0].score += 1
-                        balls_list[1].score += 1
+                    coin_hit_list[0].score += 1
+                    k.collide(Coins)
+
+            #Respawn Coins
+            if len(Coins) <= 0:
+                coins_list[0].respawn(Coins)
+
+
+
+
+
 
 
             # DRAW
@@ -413,6 +534,9 @@ class Game:
 
 
 if __name__ == "__main__":
+    pygame.mixer.init()
+    pygame.mixer.music.load("Data/Flash.mp3")
+    pygame.mixer.music.play(-1, 0.0)
     o1 = Game()
     o1.play()
 
